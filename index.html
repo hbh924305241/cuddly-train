@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>健身客户管理系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563eb',
+                        secondary: '#10b981',
+                        accent: '#f59e0b',
+                        danger: '#ef4444',
+                        neutral: '#64748b'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card-hover {
+                @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+            }
+            .form-focus {
+                @apply focus:ring-2 focus:ring-primary/50 focus:border-primary focus:outline-none;
+            }
+            .timeline-item {
+                @apply relative pl-8 pb-6 last:pb-0;
+            }
+            .timeline-item::before {
+                content: '';
+                @apply absolute left-0 top-1 w-4 h-4 rounded-full bg-primary;
+            }
+            .timeline-item::after {
+                content: '';
+                @apply absolute left-1.5 top-5 bottom-0 w-0.5 bg-gray-200 last:hidden;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans text-gray-800 min-h-screen">
+    <!-- 顶部导航 -->
+    <header class="bg-white shadow-md fixed top-0 left-0 right-0 z-50">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <i class="fa fa-dumbbell text-primary text-2xl mr-3"></i>
+                    <h1 class="text-xl font-bold text-gray-800">健身客户管理系统</h1>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <button class="relative p-2 text-gray-600 hover:text-primary transition-colors">
+                        <i class="fa fa-bell-o text-lg"></i>
+                        <span class="absolute top-1 right-1 w-2 h-2 bg-danger rounded-full"></span>
+                    </button>
+                    <div class="flex items-center">
+                        <img src="https://picsum.photos/id/1005/40/40" alt="用户头像" class="w-8 h-8 rounded-full mr-2">
+                        <span class="text-sm font-medium">王教练</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="container mx-auto px-4 pt-24 pb-16">
+        <!-- 今日提醒 -->
+        <section class="mb-8">
+            <div class="bg-gradient-to-r from-primary to-blue-600 rounded-xl shadow-md p-6 text-white">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold flex items-center">
+                        <i class="fa fa-calendar-check-o mr-2"></i>今日提醒
+                    </h2>
+                    <span class="text-sm bg-white/20 px-3 py-1 rounded-full">6月15日 星期四</span>
+                </div>
+                
+                <div class="grid md:grid-cols-4 gap-4">
+                    <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4 card-hover">
+                        <div class="flex items-center mb-2">
+                            <i class="fa fa-birthday-cake mr-2"></i>
+                            <span class="font-medium">生日提醒</span>
+                        </div>
+                        <p class="text-sm">3位客户今天生日</p>
+                    </div>
+                    
+                    <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4 card-hover">
+                        <div class="flex items-center mb-2">
+                            <i class="fa fa-female mr-2"></i>
+                            <span class="font-medium">生理期提醒</span>
+                        </div>
+                        <p class="text-sm">1位客户今日开始生理期</p>
+                    </div>
+                    
+                    <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4 card-hover">
+                        <div class="flex items-center mb-2">
+                            <i class="fa fa-id-card-o mr-2"></i>
+                            <span class="font-medium">会员到期</span>
+                        </div>
+                        <p class="text-sm">2位客户会员即将到期</p>
+                    </div>
+                    
+                    <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4 card-hover">
+                        <div class="flex items-center mb-2">
+                            <i class="fa fa-calendar mr-2"></i>
+                            <span class="font-medium">今日课程</span>
+                        </div>
+                        <p class="text-sm">李姐 - 19:00 私教课</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 主要功能区 -->
+        <div class="grid lg:grid-cols-3 gap-8">
+            <!-- 左侧：客户列表 -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl shadow-sm p-5 mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-bold text-gray-800">客户列表</h2>
+                        <button id="addClientBtn" class="bg-primary text-white px-3 py-1.5 rounded-md text-sm hover:bg-primary/90 transition-colors">
+                            <i class="fa fa-plus mr-1"></i>添加客户
+                        </button>
+                    </div>
+                    
+                    <!-- 搜索和筛选 -->
+                    <div class="mb-4">
+                        <div class="relative">
+                            <input type="text" placeholder="搜索客户..." class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg form-focus">
+                            <i class="fa fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                        
+                        <div class="flex flex-wrap gap-2 mt-3">
+                            <button class="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full hover:bg-primary/20 transition-colors">
+                                全部客户
+                            </button>
+                            <button class="px-3 py-1 bg-gray-100 text-gray-600 text-xs rounded-full hover:bg-gray-200 transition-colors">
+                                老客户
+                            </button>
+                            <button class="px-3 py-1 bg-gray-100 text-gray-600 text-xs rounded-full hover:bg-gray-200 transition-colors">
+                                美妆客户
+                            </button>
+                            <button class="px-3 py-1 bg-gray-100 text-gray-600 text-xs rounded-full hover:bg-gray-200 transition-colors">
+                                企业高管
+                            </button>
+                            <button class="px-3 py-1 bg-gray-100 text-gray-600 text-xs rounded-full hover:bg-gray-200 transition-colors">
+                                <i class="fa fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 客户列表 -->
+                    <div class="space-y-2 max-h-[calc(100vh-320px)] overflow-y-auto pr-1">
+                        <div class="client-item p-3 rounded-lg bg-primary/5 border-l-4 border-primary cursor-pointer">
+                            <div class="flex justify-between">
+                                <div class="font-medium">李姐</div>
+                                <span class="text-xs bg-accent/20 text-accent px-2 py-0.5 rounded-full">今日生日</span>
+                            </div>
+                            <div class="text-xs text-gray-500 mt-1">美妆行业 | 老客户</div>
+                            <div class="text-xs text-primary mt-1"><i class="fa fa-clock-o mr-1"></i>今日19:00 私教课</div>
+                        </div>
+                        
+                        <div class="client-item p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                            <div class="flex justify-between">
+                                <div class="font-medium">王总</div>
+                                <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">企业高管</span>
+                            </div>
+                            <div class="text-xs text-gray-500 mt-1">金融行业 | 签约1年</div>
+                            <div class="text-xs text-gray-500 mt-1"><i class="fa fa-check-circle mr-1"></i>本周已完成3节课</div>
+                        </div>
+                        
+                        <div class="client-item p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                            <div class="flex justify-between">
+                                <div class="font-medium">张女士</div>
+                                <span class="text-xs bg-danger/20 text-danger px-2 py-0.5 rounded-full">今日生理期</span>
+                            </div>
+                            <div class="text-xs text-gray-500 mt-1">教师 | 新客户</div>
+                            <div class="text-xs text-gray-500 mt-1"><i class="fa fa-exclamation-circle mr-1"></i>本周缺席1节课</div>
+                        </div>
+                        
+                        <div class="client-item p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                            <div class="flex justify-between">
+                                <div class="font-medium">刘先生</div>
+                                <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">健身达人</span>
+                            </div>
+                            <div class="text-xs text-gray-500 mt-1">IT行业 | 老客户</div>
+                            <div class="text-xs text-gray-500 mt-1"><i class="fa fa-trophy mr-1"></i>本月已完成12节课</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 统计分析 -->
+                <div class="bg-white rounded-xl shadow-sm p-5">
+                    <h2 class="text-lg font-bold text-gray-800 mb-4">客户统计</h2>
+                    <canvas id="clientStatsChart" height="200"></canvas>
+                    
+                    <div class="grid grid-cols-2 gap-3 mt-4">
+                        <div class="bg-gray-50 p-3 rounded-lg">
+                            <div class="text-sm text-gray-500">本月提醒完成率</div>
+                            <div class="text-xl font-bold text-primary mt-1">85%</div>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-lg">
+                            <div class="text-sm text-gray-500">活跃客户数</div>
+                            <div class="text-xl font-bold text-secondary mt-1">24</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 右侧：客户详情 -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-xl shadow-sm p-5 mb-6">
+                    <!-- 客户基本信息 -->
+                    <div class="flex flex-col md:flex-row md:items-center justify-between mb-6">
+                        <div class="flex items-center mb-4 md:mb-0">
+                            <img src="https://picsum.photos/id/64/100/100" alt="李姐" class="w-16 h-16 rounded-full object-cover border-2 border-primary">
+                            <div class="ml-4">
+                                <div class="flex items-center">
+                                    <h2 class="text-2xl font-bold">李姐</h2>
+                                    <span class="ml-2 bg-accent/20 text-accent px-2 py-0.5 rounded-full text-sm">今日生日</span>
+                                </div>
+                                <div class="flex flex-wrap gap-2 mt-1">
+                                    <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs">美妆行业</span>
+                                    <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs">老客户</span>
+                                    <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs">减重目标</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex gap-2">
+                            <button class="px-4 py-2 border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50 transition-colors">
+                                <i class="fa fa-edit mr-1"></i>编辑
+                            </button>
+                            <button class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors">
+                                <i class="fa fa-commenting-o mr-1"></i>沟通记录
+                            </button>
+                            <button class="px-4 py-2 bg-secondary text-white rounded-md hover:bg-secondary/90 transition-colors">
+                                <i class="fa fa-plus mr-1"></i>添加课程
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 信息标签页 -->
+                    <div class="border-b border-gray-200">
+                        <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" id="clientTabs" role="tablist">
+                            <li class="mr-2" role="presentation">
+                                <button class="inline-block p-4 border-b-2 border-primary text-primary rounded-t-lg" id="info-tab" data-tabs-target="#info" type="button" role="tab" aria-selected="true">
+                                    基础信息
+                                </button>
+                            </li>
+                            <li class="mr-2" role="presentation">
+                                <button class="inline-block p-4 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 rounded-t-lg" id="dates-tab" data-tabs-target="#dates" type="button" role="tab" aria-selected="false">
+                                    重要日期
+                                </button>
+                            </li>
+                            <li class="mr-2" role="presentation">
+                                <button class="inline-block p-4 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 rounded-t-lg" id="classes-tab" data-tabs-target="#classes" type="button" role="tab" aria-selected="false">
+                                    课程统计
+                                </button>
+                            </li>
+                            <li class="mr-2" role="presentation">
+                                <button class="inline-block p-4 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 rounded-t-lg" id="summaries-tab" data-tabs-target="#summaries" type="button" role="tab" aria-selected="false">
+                                    训练总结
+                                </button>
+                            </li>
+                            <li role="presentation">
+                                <button class="inline-block p-4 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 rounded-t-lg" id="records-tab" data-tabs-target="#records" type="button" role="tab" aria-selected="false">
+                                    沟通记录
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- 标签页内容 -->
+                    <div id="clientTabContent" class="py-4">
+                        <!-- 基础信息 -->
+                        <div class="tab-content" id="info" role="tabpanel" aria-labelledby="info-tab">
+                            <div class="grid md:grid-cols-2 gap-6">
+                                <div>
+                                    <h3 class="text-base
